@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clase Resumen – Análisis de Patrones de Arquitectura</title>
+  <style>
+    /* ─────────────── Reset & Base ─────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f9;
+      color: #1e2d3d;
+      line-height: 1.7;
+    }
+
+    /* ─────────────── Header ─────────────── */
+    header {
+      background: linear-gradient(135deg, #1a237e 0%, #283593 60%, #3949ab 100%);
+      color: #fff;
+      padding: 48px 32px 40px;
+      text-align: center;
+    }
+    header .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 4px 16px;
+      font-size: 0.82rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    header p.subtitle {
+      font-size: 1.05rem;
+      opacity: 0.85;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* ─────────────── Layout ─────────────── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    /* ─────────────── Section headings ─────────────── */
+    .section-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #1a237e;
+      margin: 48px 0 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title .icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #1a237e;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* ─────────────── Intro card ─────────────── */
+    .intro-card {
+      background: #fff;
+      border-left: 5px solid #3949ab;
+      border-radius: 8px;
+      padding: 24px 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      margin-bottom: 10px;
+    }
+    .intro-card p { font-size: 1.02rem; }
+
+    /* ─────────────── Pattern cards ─────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 22px;
+      margin-top: 4px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 24px 22px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      border-top: 4px solid #3949ab;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    }
+    .card.color-1 { border-top-color: #3949ab; }
+    .card.color-2 { border-top-color: #00897b; }
+    .card.color-3 { border-top-color: #e65100; }
+    .card.color-4 { border-top-color: #6a1b9a; }
+
+    .card h3 {
+      font-size: 1.08rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #1e2d3d;
+    }
+    .card p { font-size: 0.95rem; color: #3d4d5e; margin-bottom: 10px; }
+    .card ul {
+      padding-left: 18px;
+      font-size: 0.92rem;
+      color: #3d4d5e;
+    }
+    .card ul li { margin-bottom: 5px; }
+
+    .example-box {
+      margin-top: 12px;
+      background: #f5f7fa;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      color: #546e7a;
+      border-left: 3px solid #90a4ae;
+    }
+    .example-box strong { color: #37474f; }
+
+    /* ─────────────── Comparison table ─────────────── */
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      margin-top: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 0.93rem;
+    }
+    thead th {
+      background: #1a237e;
+      color: #fff;
+      padding: 14px 18px;
+      text-align: left;
+      font-weight: 600;
+    }
+    tbody tr:nth-child(even) { background: #f3f5fb; }
+    tbody td {
+      padding: 12px 18px;
+      border-bottom: 1px solid #e8ecf5;
+      vertical-align: top;
+    }
+    td .yes { color: #00897b; font-weight: 700; }
+    td .no  { color: #c62828; font-weight: 700; }
+    td .mid { color: #e65100; font-weight: 700; }
+
+    /* ─────────────── Pros / Cons ─────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 4px;
+    }
+    @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+    .pros-cons {
+      background: #fff;
+      border-radius: 10px;
+      padding: 22px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .pros-cons h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .pros-cons.pros h4 { color: #00897b; }
+    .pros-cons.cons h4 { color: #c62828; }
+    .pros-cons ul { padding-left: 18px; font-size: 0.93rem; color: #3d4d5e; }
+    .pros-cons ul li { margin-bottom: 6px; }
+
+    /* ─────────────── Communication patterns ─────────────── */
+    .comm-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 4px;
+    }
+    .comm-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 22px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .comm-card .tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+    .tag-sync  { background: #e3f2fd; color: #1565c0; }
+    .tag-async { background: #e8f5e9; color: #2e7d32; }
+    .tag-event { background: #fff3e0; color: #bf360c; }
+
+    .comm-card h4 { font-size: 0.98rem; font-weight: 700; margin-bottom: 8px; }
+    .comm-card p  { font-size: 0.90rem; color: #3d4d5e; }
+
+    /* ─────────────── Tools ─────────────── */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-top: 4px;
+    }
+    .tool-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .tool-card .tool-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a237e;
+    }
+    .tool-card p { font-size: 0.90rem; color: #3d4d5e; }
+
+    /* ─────────────── Glossary ─────────────── */
+    .glossary {
+      background: #fff;
+      border-radius: 10px;
+      padding: 26px 28px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      margin-top: 4px;
+    }
+    .glossary dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 20px; }
+    .glossary dt {
+      font-weight: 700;
+      color: #1a237e;
+      padding-top: 2px;
+      white-space: nowrap;
+    }
+    .glossary dd { font-size: 0.93rem; color: #3d4d5e; }
+
+    /* ─────────────── Key takeaways ─────────────── */
+    .takeaway-list {
+      background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+      color: #fff;
+      border-radius: 10px;
+      padding: 26px 28px;
+      margin-top: 4px;
+    }
+    .takeaway-list ol { padding-left: 22px; }
+    .takeaway-list li { margin-bottom: 10px; font-size: 0.97rem; line-height: 1.6; }
+
+    /* ─────────────── Footer ─────────────── */
+    footer {
+      text-align: center;
+      padding: 28px 20px;
+      font-size: 0.83rem;
+      color: #78909c;
+      background: #e8edf5;
+      border-top: 1px solid #cfd8e6;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════ -->
+<header>
+  <div class="badge">DSY1106 · Desarrollo Fullstack III</div>
+  <h1>Análisis de Patrones de Arquitectura</h1>
+  <p class="subtitle">Clase resumen pensada para quienes recién se acercan al tema. Aquí encontrarás los conceptos clave explicados con claridad y ejemplos del mundo real.</p>
+</header>
+
+<div class="container">
+
+  <!-- ───────────────────────────────────────────
+       1. INTRODUCCIÓN
+  ─────────────────────────────────────────── -->
+  <div class="section-title">
+    <div class="icon">1</div>
+    ¿Qué es un Patrón de Arquitectura?
+  </div>
+
+  <div class="intro-card">
+    <p>
+      Cuando construyes una aplicación, necesitas decidir <strong>cómo organizar y conectar sus piezas</strong>.
+      Un <em>patrón de arquitectura</em> es como un plano o receta probada que te dice cómo estructurar
+      el software para que sea fácil de mantener, escalar y modificar con el tiempo.
+    </p>
+    <br/>
+    <p>
+      La elección del patrón tiene un impacto directo en tres aspectos críticos:
+    </p>
+    <br/>
+    <ul style="padding-left:20px; font-size:0.97rem; color:#3d4d5e;">
+      <li><strong>Escalabilidad</strong> – ¿El sistema puede crecer sin romperse?</li>
+      <li><strong>Flexibilidad</strong> – ¿Es fácil agregar o cambiar funcionalidades?</li>
+      <li><strong>Mantenimiento</strong> – ¿Es sencillo detectar y corregir errores?</li>
+    </ul>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       2. LOS 4 PATRONES PRINCIPALES
+  ─────────────────────────────────────────── -->
+  <div class="section-title">
+    <div class="icon">2</div>
+    Los 4 Patrones de Arquitectura Principales
+  </div>
+
+  <div class="cards-grid">
+
+    <!-- Monolítica -->
+    <div class="card color-1">
+      <h3>🏛️ Arquitectura Monolítica</h3>
+      <p>Toda la aplicación se empaqueta y despliega como <strong>un único bloque</strong>. La lógica de negocio, la interfaz de usuario y el acceso a datos conviven en el mismo lugar.</p>
+      <ul>
+        <li>Simple de desarrollar y probar al inicio.</li>
+        <li>Un solo despliegue para todo el sistema.</li>
+        <li>Si una parte falla, puede afectar al todo.</li>
+        <li>Difícil de escalar partes individuales.</li>
+      </ul>
+      <div class="example-box">
+        <strong>Ejemplo real:</strong> Un sitio web de tienda online clásico donde el carrito de compras, el catálogo y los usuarios viven en el mismo código y se despliegan juntos.
+      </div>
+    </div>
+
+    <!-- Microservicios -->
+    <div class="card color-2">
+      <h3>🔧 Arquitectura de Microservicios</h3>
+      <p>La aplicación se divide en <strong>servicios pequeños e independientes</strong>, cada uno responsable de una función específica del negocio.</p>
+      <ul>
+        <li>Cada servicio se puede desplegar por separado.</li>
+        <li>Altamente escalable y adaptable.</li>
+        <li>Los equipos trabajan de forma autónoma.</li>
+        <li>Mayor complejidad en comunicación y monitoreo.</li>
+      </ul>
+      <div class="example-box">
+        <strong>Ejemplo real:</strong> Un e-commerce con servicios separados para inventario, pedidos y usuarios. Si el servicio de inventario falla, los usuarios aún pueden hacer login.
+      </div>
+    </div>
+
+    <!-- Orientada a Eventos -->
+    <div class="card color-3">
+      <h3>⚡ Arquitectura Orientada a Eventos</h3>
+      <p>Los componentes se comunican mediante <strong>eventos</strong> (notificaciones que dicen "algo ocurrió"). Nadie espera a nadie; todos reaccionan cuando les llega el mensaje.</p>
+      <ul>
+        <li>Componentes desacoplados entre sí.</li>
+        <li>Procesamiento asíncrono (no espera respuesta).</li>
+        <li>Escalabilidad dinámica según la carga.</li>
+        <li>Muy flexible y adaptable al cambio.</li>
+      </ul>
+      <div class="example-box">
+        <strong>Ejemplo real:</strong> Al confirmar un pago en una tienda online, se genera un evento que simultáneamente actualiza el inventario, notifica al cliente y prepara el envío — todo de forma automática.
+      </div>
+    </div>
+
+    <!-- Serverless -->
+    <div class="card color-4">
+      <h3>☁️ Arquitectura Serverless</h3>
+      <p>El desarrollador escribe <strong>funciones</strong> que se ejecutan en la nube bajo demanda. No hay que gestionar ni configurar servidores.</p>
+      <ul>
+        <li>La infraestructura es gestionada por el proveedor cloud.</li>
+        <li>Se paga solo por el tiempo de ejecución real.</li>
+        <li>Escala automáticamente con la demanda.</li>
+        <li>Despliegue rápido y sencillo.</li>
+      </ul>
+      <div class="example-box">
+        <strong>Ejemplo real:</strong> Una app que procesa imágenes subidas por usuarios: al subir una foto se dispara una función en la nube que la redimensiona y la guarda, sin necesidad de un servidor siempre activo.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       3. COMPARATIVA RÁPIDA
+  ─────────────────────────────────────────── -->
+  <div class="section-title">
+    <div class="icon">3</div>
+    Comparativa Rápida
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Característica</th>
+          <th>Monolítica</th>
+          <th>Microservicios</th>
+          <th>Orientada a Eventos</th>
+          <th>Serverless</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Simplicidad inicial</strong></td>
+          <td><span class="yes">Alta</span></td>
+          <td><span class="no">Baja</span></td>
+          <td><span class="mid">Media</span></td>
+          <td><span class="yes">Alta</span></td>
+        </tr>
+        <tr>
+          <td><strong>Escalabilidad</strong></td>
+          <td><span class="no">Limitada</span></td>
+          <td><span class="yes">Alta</span></td>
+          <td><span class="yes">Alta</span></td>
+          <td><span class="yes">Automática</span></td>
+        </tr>
+        <tr>
+          <td><strong>Despliegue independiente</strong></td>
+          <td><span class="no">No</span></td>
+          <td><span class="yes">Sí</span></td>
+          <td><span class="yes">Sí</span></td>
+          <td><span class="yes">Sí</span></td>
+        </tr>
+        <tr>
+          <td><strong>Comunicación entre partes</strong></td>
+          <td>Interna (directa)</td>
+          <td>REST / gRPC</td>
+          <td>Eventos / Mensajes</td>
+          <td>Funciones / Triggers</td>
+        </tr>
+        <tr>
+          <td><strong>Complejidad operativa</strong></td>
+          <td><span class="yes">Baja</span></td>
+          <td><span class="no">Alta</span></td>
+          <td><span class="mid">Media-Alta</span></td>
+          <td><span class="mid">Media</span></td>
+        </tr>
+        <tr>
+          <td><strong>Ideal para…</strong></td>
+          <td>Proyectos pequeños o MVP</td>
+          <td>Sistemas grandes y equipos distribuidos</td>
+          <td>Flujos asíncronos y tiempo real</td>
+          <td>Tareas puntuales o bajo demanda</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       4. PATRONES COMBINADOS
+  ─────────────────────────────────────────── -->
+  <div class="section-title">
+    <div class="icon">4</div>
+    Patrones Combinados: Lo Mejor de Varios Mundos
+  </div>
+
+  <div class="intro-card">
+    <p>
+      En la práctica, los sistemas reales <strong>mezclan patrones</strong> para aprovechar las fortalezas de cada uno.
+      El combo más popular es <em>Microservicios + Arquitectura Orientada a Eventos</em>:
+    </p>
+    <br/>
+    <ul style="padding-left:20px; font-size:0.97rem; color:#3d4d5e;">
+      <li>Cada <strong>microservicio</strong> maneja una responsabilidad específica (pagos, inventario, notificaciones…).</li>
+      <li>Los servicios se comunican mediante <strong>eventos</strong> en lugar de llamadas directas, lo que los desacopla.</li>
+      <li>Si un servicio falla, los demás continúan funcionando y el evento se procesa cuando se recupere.</li>
+      <li>El sistema puede escalar los servicios con mayor demanda de forma independiente.</li>
+    </ul>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       5. MICROSERVICIOS EN DETALLE
+  ─────────────────────────────────────────── -->
+  <div class="section-title">
+    <div class="icon">5</div>
+    Microservicios en Detalle
+  </div>
+
+  <div class="two-col">
+    <div class="pros-cons pros">
+      <h4>✅ Ventajas</h4>
+      <ul>
+        <li><strong>Escalabilidad independiente:</strong> Solo escalas el servicio que lo necesita, no toda la app. Ahorro de recursos y costos.</li>
+        <li><strong>Despliegues rápidos:</strong> Actualizas un servicio sin tocar los demás. Menos riesgo y mayor velocidad de entrega.</li>
+        <li><strong>Tecnología a medida:</strong> Cada equipo elige el lenguaje y herramienta más apropiados para su servicio (Python para datos, Java para pagos, etc.).</li>
+        <li><strong>Equipos autónomos:</strong> Cada equipo es "dueño" de su servicio de principio a fin, mejorando la productividad y responsabilidad.</li>
+      </ul>
+    </div>
+    <div class="pros-cons cons">
+      <h4>⚠️ Desafíos</h4>
+      <ul>
+        <li><strong>Comunicación compleja:</strong> Coordinar muchos servicios independientes requiere estrategia y herramientas específicas.</li>
+        <li><strong>Transacciones distribuidas:</strong> Garantizar consistencia de datos cuando varios servicios participan en una operación es difícil.</li>
+        <li><strong>Monitoreo avanzado:</strong> Necesitas herramientas especializadas para rastrear errores que cruzan múltiples servicios.</li>
+        <li><strong>Mayor costo operativo:</strong> Más servicios = más infraestructura = más cosas que gestionar y mantener.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       6. COMUNICACIÓN ENTRE MICROSERVICIOS
+  ─────────────────────────────────────────── -->
+  <div class="section-title">
+    <div class="icon">6</div>
+    Cómo se Comunican los Microservicios
+  </div>
+
+  <div class="comm-cards">
+
+    <div class="comm-card">
+      <span class="tag tag-sync">Síncrona</span>
+      <h4>REST / gRPC</h4>
+      <p>
+        El servicio A llama al servicio B y <strong>espera la respuesta</strong> antes de continuar.
+        Ideal cuando necesitas una respuesta inmediata (consultar el saldo de un usuario antes de procesar un pago).
+      </p>
+      <div class="example-box" style="margin-top:10px;">
+        <strong>Analogía:</strong> Como hacer una llamada telefónica: preguntas y esperas que te respondan.
+      </div>
+    </div>
+
+    <div class="comm-card">
+      <span class="tag tag-async">Asíncrona</span>
+      <h4>Mensajería (Colas)</h4>
+      <p>
+        El servicio A envía un mensaje a una cola y <strong>sigue trabajando</strong> sin esperar respuesta.
+        El servicio B lo procesa cuando esté disponible. Aumenta la resiliencia del sistema.
+      </p>
+      <div class="example-box" style="margin-top:10px;">
+        <strong>Analogía:</strong> Como enviar un email: lo mandas y continúas con tu día; el receptor responde cuando pueda.
+      </div>
+    </div>
+
+    <div class="comm-card">
+      <span class="tag tag-event">Eventos Distribuidos</span>
+      <h4>Streaming de Eventos</h4>
+      <p>
+        Un evento es publicado y <strong>múltiples servicios pueden recibirlo simultáneamente</strong>.
+        Permite actualizaciones en paralelo sin bloquear ningún proceso.
+      </p>
+      <div class="example-box" style="margin-top:10px;">
+        <strong>Analogía:</strong> Como una transmisión en vivo: quien esté sintonizado recibe el mensaje al mismo tiempo.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       7. HERRAMIENTAS Y TECNOLOGÍAS
+  ─────────────────────────────────────────── -->
+  <div class="section-title">
+    <div class="icon">7</div>
+    Herramientas y Tecnologías Clave
+  </div>
+
+  <div class="tools-grid">
+
+    <div class="tool-card">
+      <span class="tool-name">🐳 Docker</span>
+      <p>Empaqueta una aplicación junto con todo lo que necesita para ejecutarse en un <strong>contenedor</strong> portátil. Garantiza que funcione igual en tu máquina, en pruebas y en producción.</p>
+      <div class="example-box"><strong>Usado por:</strong> PayPal para optimizar despliegues.</div>
+    </div>
+
+    <div class="tool-card">
+      <span class="tool-name">☸️ Kubernetes</span>
+      <p>Orquesta y <strong>gestiona automáticamente</strong> decenas o cientos de contenedores Docker: los inicia, detiene, escala y reinicia si fallan.</p>
+      <div class="example-box"><strong>Usado por:</strong> Spotify para gestionar cientos de microservicios.</div>
+    </div>
+
+    <div class="tool-card">
+      <span class="tool-name">☁️ AWS ECS/EKS · Azure AKS · Google GKE</span>
+      <p>Plataformas cloud que ofrecen Kubernetes gestionado. Simplifican la configuración y agregan monitoreo, seguridad y escalado integrados.</p>
+      <div class="example-box"><strong>Usado por:</strong> Netflix para 200+ millones de usuarios.</div>
+    </div>
+
+    <div class="tool-card">
+      <span class="tool-name">📋 ELK Stack (Log Aggregation)</span>
+      <p>Centraliza los registros (logs) de todos los servicios en un único lugar para analizarlos fácilmente y detectar errores de forma temprana.</p>
+      <div class="example-box"><strong>Usado por:</strong> Airbnb para detectar métricas críticas.</div>
+    </div>
+
+    <div class="tool-card">
+      <span class="tool-name">🔍 Jaeger / Zipkin (Distributed Tracing)</span>
+      <p>Siguen el recorrido de una petición a través de múltiples microservicios para identificar dónde se producen cuellos de botella o errores.</p>
+      <div class="example-box"><strong>Usado por:</strong> Uber para optimizar tiempos de respuesta.</div>
+    </div>
+
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       8. GLOSARIO RÁPIDO
+  ─────────────────────────────────────────── -->
+  <div class="section-title">
+    <div class="icon">8</div>
+    Glosario Rápido
+  </div>
+
+  <div class="glossary">
+    <dl>
+      <dt>Patrón</dt>
+      <dd>Solución probada y reutilizable para un problema de diseño recurrente.</dd>
+
+      <dt>Escalabilidad</dt>
+      <dd>Capacidad de un sistema para manejar más carga (usuarios, datos, peticiones) sin degradar su rendimiento.</dd>
+
+      <dt>Despliegue</dt>
+      <dd>Proceso de llevar el código de desarrollo a un ambiente productivo (el servidor real que usan los usuarios).</dd>
+
+      <dt>Contenedor</dt>
+      <dd>Unidad de software que empaqueta código + dependencias para ejecutarse de forma aislada y portable.</dd>
+
+      <dt>Evento</dt>
+      <dd>Notificación de que algo ocurrió en el sistema (ej.: "pago aprobado", "usuario registrado").</dd>
+
+      <dt>Asíncrono</dt>
+      <dd>Forma de comunicación donde quien envía un mensaje no espera respuesta inmediata y sigue trabajando.</dd>
+
+      <dt>Síncrono</dt>
+      <dd>Forma de comunicación donde quien envía una solicitud espera la respuesta antes de continuar.</dd>
+
+      <dt>Monolito</dt>
+      <dd>Aplicación en la que todas las funcionalidades están en un único bloque de código y se despliegan juntas.</dd>
+
+      <dt>Microservicio</dt>
+      <dd>Componente pequeño, independiente y desplegable de forma autónoma que cumple una función específica.</dd>
+
+      <dt>Serverless</dt>
+      <dd>Modelo de ejecución en la nube donde el proveedor gestiona toda la infraestructura; solo pagas por lo que usas.</dd>
+
+      <dt>Conway's Law</dt>
+      <dd>Principio que dice que la arquitectura del software tiende a reflejar la estructura de comunicación de la organización que lo crea.</dd>
+    </dl>
+  </div>
+
+  <!-- ───────────────────────────────────────────
+       9. IDEAS CLAVE PARA RECORDAR
+  ─────────────────────────────────────────── -->
+  <div class="section-title">
+    <div class="icon">9</div>
+    Ideas Clave para Recordar
+  </div>
+
+  <div class="takeaway-list">
+    <ol>
+      <li>No existe un patrón "perfecto" para todos los casos: la elección depende del tamaño del proyecto, el equipo y los requisitos del negocio.</li>
+      <li>La arquitectura monolítica es una opción válida y simple para proyectos pequeños o en etapas iniciales (MVP).</li>
+      <li>Los microservicios aportan gran escalabilidad y flexibilidad, pero a costa de mayor complejidad operativa.</li>
+      <li>La arquitectura orientada a eventos permite que los servicios estén desacoplados, haciéndolos más resilientes ante fallos.</li>
+      <li>En sistemas reales se combinan patrones para aprovechar las fortalezas de cada uno.</li>
+      <li>Las herramientas (Docker, Kubernetes, monitoreo distribuido) son tan importantes como la arquitectura en sí para que el sistema funcione bien en producción.</li>
+      <li>El diseño arquitectónico no es solo tecnología: <em>"se trata de resolver problemas del negocio de forma escalable, adaptable y sostenible"</em>.</li>
+    </ol>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  Clase resumen basada en el documento <strong>1.1.1 – PPT Análisis de Patrones de Arquitectura</strong> · DSY1106 Desarrollo Fullstack III
+</footer>
+
+</body>
+</html>
